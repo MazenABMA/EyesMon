@@ -3,10 +3,7 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 from collections import deque
-import threading
 import queue
-import time
-import random
 
 MAX_DATA_POINTS = 20
 
@@ -72,7 +69,6 @@ class RoomTab:
         self.device_names = []
         self.current_index = 0
 
-        # Navigation buttons frame
         nav_frame = ttk.Frame(self.frame)
         nav_frame.pack(side='top', fill='x')
 
@@ -85,7 +81,6 @@ class RoomTab:
         self.next_button = ttk.Button(nav_frame, text="Next ▶", command=self.show_next_device)
         self.next_button.pack(side='right')
 
-        # Container for graph frames
         self.graph_container = ttk.Frame(self.frame)
         self.graph_container.pack(expand=True, fill='both')
 
@@ -93,12 +88,11 @@ class RoomTab:
         if device_name not in self.device_graphs:
             graph = DeviceGraph(self.graph_container, device_name)
             self.device_graphs[device_name] = graph
-            graph.frame.pack_forget()  # Hide initially
+            graph.frame.pack_forget()
             self.device_names.append(device_name)
 
         self.device_graphs[device_name].update(metrics)
 
-        # Show first device initially or current device if updated
         if len(self.device_names) == 1:
             self.current_index = 0
             self.show_device_by_index(self.current_index)
@@ -106,16 +100,13 @@ class RoomTab:
             self.show_device_by_index(self.current_index)
 
     def show_device_by_index(self, index):
-        # Hide all device graphs
         for graph in self.device_graphs.values():
             graph.frame.pack_forget()
 
-        # Show selected device graph
         current_device = self.device_names[index]
         self.device_graphs[current_device].frame.pack(expand=True, fill='both')
         self.device_label.config(text=f"Device: {current_device}")
 
-        # Button state
         self.prev_button.config(state='normal' if index > 0 else 'disabled')
         self.next_button.config(state='normal' if index < len(self.device_names) - 1 else 'disabled')
 
@@ -161,24 +152,3 @@ def start_gui(data_queue):
     root = tk.Tk()
     gui = EyesMonGUI(root, data_queue)
     root.mainloop()
-
-if __name__ == "__main__":
-    q = queue.Queue()
-
-    def fake_data_producer():
-        rooms = ['Room 1', 'Room 2']
-        devices = ['Infusion Pump A', 'Ventilator B', 'ECG Monitor C']
-        while True:
-            for room in rooms:
-                for device in devices:
-                    metrics = {
-                        "cpu": random.randint(10, 90),
-                        "ram": random.randint(10, 90),
-                        "disk_usage": random.randint(10, 90),
-                        "temperature": random.randint(30, 80),
-                    }
-                    q.put({"room": room, "device_name": device, "metrics": metrics})
-            time.sleep(5)
-
-    threading.Thread(target=fake_data_producer, daemon=True).start()
-    start_gui(q)
