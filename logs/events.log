@@ -5,3 +5,45 @@
 [2025-05-15 05:30:26] [ALERT] Room 1 - Room 1 - Ventilator C - CPU is 89%!
 [2025-05-15 05:30:50] [ALERT] Room 1 - Room 1 - Heart Rate Sensor D - CPU is 91%!
 [2025-05-15 05:41:58] [ALERT] Room 1 - Room 1 - Ventilator C - CPU is 93%!
+2025-05-15 05:46:13 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 83%!
+2025-05-15 05:46:16 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - RAM is 82%!
+2025-05-15 05:46:28 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 86%!
+2025-05-15 05:46:29 - ALERT - Room 1 - Room 1 - Infusion Pump A - RAM is 83%!
+2025-05-15 05:46:33 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - CPU is 85%!
+2025-05-15 05:46:36 - ALERT - Room 1 - Room 1 - Ventilator C - CPU is 84%!
+2025-05-15 05:46:40 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 81%!
+2025-05-15 05:46:41 - ALERT - Room 1 - Room 1 - Infusion Pump A - RAM is 80%!
+2025-05-15 05:48:39 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 91%!
+2025-05-15 05:48:44 - ALERT - Room 1 - Room 1 - ECG Monitor B - RAM is 87%!
+2025-05-15 05:48:46 - ALERT - Room 1 - Room 1 - Infusion Pump A - RAM is 81%!
+2025-05-15 05:49:01 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 95%!
+2025-05-15 05:49:01 - ALERT - Room 1 - Room 1 - ECG Monitor B - RAM is 91%!
+2025-05-15 05:49:02 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - CPU is 95%!
+2025-05-15 05:49:04 - ALERT - Room 1 - Room 1 - Infusion Pump A - RAM is 94%!
+2025-05-15 05:51:59 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - CPU is 81%!
+2025-05-15 05:55:14 - ALERT - Room 1 - Room 1 - Ventilator C - RAM is 88%!
+2025-05-15 05:55:25 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 90%!
+2025-05-15 05:55:31 - ALERT - Room 1 - Room 1 - ECG Monitor B - RAM is 78%!
+2025-05-15 05:55:32 - ALERT - Room 1 - Room 1 - Ventilator C - CPU is 85%!
+2025-05-15 05:55:34 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - CPU is 88%!
+2025-05-15 05:55:39 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - RAM is 93%!
+2025-05-15 05:55:41 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - RAM is 94%!
+2025-05-15 05:55:46 - ALERT - Room 1 - Room 1 - ECG Monitor B - RAM is 77%!
+2025-05-15 05:55:48 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 93%!
+2025-05-15 06:00:40 - ALERT - Room 1 - Room 1 - Blood Pressure Monitor E - CPU is 73%!
+2025-05-15 06:00:42 - ALERT - Room 1 - Room 1 - Infusion Pump A - RAM is 76%!
+2025-05-15 06:00:45 - ALERT - Room 1 - Room 1 - Ventilator C - RAM is 75%!
+2025-05-15 06:00:47 - ALERT - Room 1 - Room 1 - Oxygen Monitor F - CPU is 76%!
+2025-05-15 06:00:52 - ALERT - Room 1 - Room 1 - Temperature Sensor G - RAM is 73%!
+2025-05-15 06:00:54 - ALERT - Room 1 - Room 1 - Oxygen Monitor F - CPU is 79%!
+2025-05-15 06:05:02 - ALERT - Room 1 - Room 1 - Infusion Pump A - RAM is 83%!
+2025-05-15 06:05:02 - ALERT - Room 1 - Room 1 - Ventilator C - CPU is 73%!
+2025-05-15 06:05:03 - ALERT - Room 1 - Room 1 - Blood Pressure Monitor E - CPU is 72%!
+2025-05-15 06:05:03 - ALERT - Room 1 - Room 1 - Temperature Sensor G - RAM is 78%!
+2025-05-15 06:05:10 - ALERT - Room 1 - Room 1 - Oxygen Monitor F - CPU is 74%!
+2025-05-15 06:05:26 - ALERT - Room 1 - Room 1 - Infusion Pump A - CPU is 78%!
+2025-05-15 06:05:29 - ALERT - Room 1 - Room 1 - Ventilator C - CPU is 71%!
+2025-05-15 06:05:31 - ALERT - Room 1 - Room 1 - Ventilator C - RAM is 93%!
+2025-05-15 06:05:32 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - RAM is 80%!
+2025-05-15 06:05:32 - ALERT - Room 1 - Room 1 - Temperature Sensor G - RAM is 71%!
+2025-05-15 06:24:23 - ALERT - Room 1 - Room 1 - Heart Rate Sensor D - [ALERT][CLI] Room 1 - Room 1 - Heart Rate Sensor D - RAM at 80%!

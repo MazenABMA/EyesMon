@@ -1,41 +1,48 @@
 import time
 import random
 from alert.alert_manager import log_alert, play_alert_sound
+import paramiko  # for SSH if you want real CLI polling
+from alert.alert_manager import print_device_status
+def poll_device_cli(device):
+    # Simulate or implement SSH command polling here, return metrics dict
+    base = random.randint(30, 75)
+    cpu = base + random.randint(-3, 6)
+    ram = base + random.randint(-2, 6)
 
-def simulate_cli_polling(device):
-    base = random.randint(30, 60)
+    if random.random() < 0.025:
+        if random.random() < 0.5:
+            cpu = random.randint(81, 95)
+        else:
+            ram = random.randint(81, 95)
+
     return {
-        "cpu": base + random.randint(-3, 6),
-        "ram": base + random.randint(-2, 5)
+        "cpu": min(cpu, 100),
+        "ram": min(ram, 100),
+        "disk_usage": random.randint(10, 95),
+        "temperature": random.randint(30, 85),
+        "uptime": random.randint(1, 1000),
+        "network_errors": random.randint(0, 5)
     }
 
-def monitor_room(room_name, devices):
-    cycle = 0
+def monitor_room_cli(room_name, devices):
+    cycle = 1
     while True:
-        cycle += 1
         print(f"\n[CLI] Polling devices... (Cycle {cycle})\n")
         for device in devices:
-            device_id = device["name"]
-            metrics = simulate_cli_polling(device)
+            metrics = poll_device_cli(device)
+            print_device_status(room_name, device, metrics)
 
-            cpu = metrics["cpu"]
-            ram = metrics["ram"]
-            cpu_threshold = device.get("cpu_threshold", 80)
-            ram_threshold = device.get("ram_threshold", 80)
+            alerts = []
+            if metrics["cpu"] > device["thresholds"].get("cpu", 100):
+                alerts.append(f"[ALERT][CLI] {room_name} - {device['name']} - CPU at {metrics['cpu']}%!")
+            if metrics["ram"] > device["thresholds"].get("ram", 100):
+                alerts.append(f"[ALERT][CLI] {room_name} - {device['name']} - RAM at {metrics['ram']}%!")
 
-            if cpu >= cpu_threshold:
-                msg = f"CPU is {cpu}%!"
-                print(f"[ALERT][CLI] {room_name} - {device_id} - {msg}")
-                log_alert(room_name, device_id, msg)
+            for alert in alerts:
+                print(alert)
+                log_alert(room_name, device['name'], alert)
                 play_alert_sound()
 
-            if ram >= ram_threshold:
-                msg = f"RAM is {ram}%!"
-                print(f"[ALERT][CLI] {room_name} - {device_id} - {msg}")
-                log_alert(room_name, device_id, msg)
-                play_alert_sound()
-
-            if cycle % 5 == 0:
-                print(f"[OK][CLI] {room_name} - {device_id} - CPU: {cpu}%, RAM: {ram}%")
-        print("-" * 50)
-        time.sleep(2)
+        print("=" * 50)
+        cycle += 1
+        time.sleep(10)
