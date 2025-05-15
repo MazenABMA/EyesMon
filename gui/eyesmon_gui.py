@@ -6,29 +6,27 @@ from collections import deque
 import threading
 import queue
 import time
+import random
 
-# Constants
-MAX_DATA_POINTS = 20  # Number of points to show in graph window
+MAX_DATA_POINTS = 20
 
 class DeviceGraph:
     def __init__(self, parent, device_name):
         self.device_name = device_name
         self.frame = ttk.LabelFrame(parent, text=device_name)
-        self.frame.pack(fill='x', padx=5, pady=5)
+        # Don't pack here; will be controlled externally
 
         self.fig, self.axs = plt.subplots(2, 2, figsize=(7, 5))
         self.fig.tight_layout(pad=3.0)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
         self.canvas.get_tk_widget().pack()
 
-        # Data buffers
         self.cpu_data = deque(maxlen=MAX_DATA_POINTS)
         self.ram_data = deque(maxlen=MAX_DATA_POINTS)
         self.disk_data = deque(maxlen=MAX_DATA_POINTS)
         self.temp_data = deque(maxlen=MAX_DATA_POINTS)
-        self.time_stamps = deque(maxlen=MAX_DATA_POINTS)
+        self.counter = 0
 
-        # Init plots
         self.lines = {}
         self._init_plots()
 
@@ -40,27 +38,27 @@ class DeviceGraph:
             ax.set_title(metric)
             ax.set_xlabel("Time")
             ax.set_ylabel(metric)
+            ax.grid(True)
             line, = ax.plot([], [], 'b-')
             self.lines[metric] = line
 
     def update(self, metrics):
-        # Add new data points
-        now = time.strftime("%H:%M:%S")
-        self.time_stamps.append(now)
+        self.counter += 1
         self.cpu_data.append(metrics.get('cpu', 0))
         self.ram_data.append(metrics.get('ram', 0))
         self.disk_data.append(metrics.get('disk_usage', 0))
         self.temp_data.append(metrics.get('temperature', 0))
 
-        # Update line data
-        self.lines['CPU %'].set_data(range(len(self.cpu_data)), self.cpu_data)
-        self.lines['RAM %'].set_data(range(len(self.ram_data)), self.ram_data)
-        self.lines['Disk Usage %'].set_data(range(len(self.disk_data)), self.disk_data)
-        self.lines['Temperature °C'].set_data(range(len(self.temp_data)), self.temp_data)
+        start_x = max(0, self.counter - len(self.cpu_data) + 1)
+        x_vals = list(range(start_x, start_x + len(self.cpu_data)))
 
-        # Update axes limits and ticks
+        self.lines['CPU %'].set_data(x_vals, self.cpu_data)
+        self.lines['RAM %'].set_data(x_vals, self.ram_data)
+        self.lines['Disk Usage %'].set_data(x_vals, self.disk_data)
+        self.lines['Temperature °C'].set_data(x_vals, self.temp_data)
+
         for ax in self.axs.flatten():
-            ax.set_xlim(0, MAX_DATA_POINTS)
+            ax.set_xlim(start_x, start_x + MAX_DATA_POINTS)
 
         self.canvas.draw_idle()
 
@@ -69,12 +67,67 @@ class RoomTab:
         self.frame = ttk.Frame(notebook)
         notebook.add(self.frame, text=room_name)
         self.room_name = room_name
+
         self.device_graphs = {}
+        self.device_names = []
+        self.current_index = 0
+
+        # Navigation buttons frame
+        nav_frame = ttk.Frame(self.frame)
+        nav_frame.pack(side='top', fill='x')
+
+        self.prev_button = ttk.Button(nav_frame, text="◀ Previous", command=self.show_prev_device)
+        self.prev_button.pack(side='left')
+
+        self.device_label = ttk.Label(nav_frame, text="No devices yet")
+        self.device_label.pack(side='left', expand=True, padx=10)
+
+        self.next_button = ttk.Button(nav_frame, text="Next ▶", command=self.show_next_device)
+        self.next_button.pack(side='right')
+
+        # Container for graph frames
+        self.graph_container = ttk.Frame(self.frame)
+        self.graph_container.pack(expand=True, fill='both')
 
     def update_device(self, device_name, metrics):
         if device_name not in self.device_graphs:
-            self.device_graphs[device_name] = DeviceGraph(self.frame, device_name)
+            graph = DeviceGraph(self.graph_container, device_name)
+            self.device_graphs[device_name] = graph
+            graph.frame.pack_forget()  # Hide initially
+            self.device_names.append(device_name)
+
         self.device_graphs[device_name].update(metrics)
+
+        # Show first device initially or current device if updated
+        if len(self.device_names) == 1:
+            self.current_index = 0
+            self.show_device_by_index(self.current_index)
+        elif device_name == self.device_names[self.current_index]:
+            self.show_device_by_index(self.current_index)
+
+    def show_device_by_index(self, index):
+        # Hide all device graphs
+        for graph in self.device_graphs.values():
+            graph.frame.pack_forget()
+
+        # Show selected device graph
+        current_device = self.device_names[index]
+        self.device_graphs[current_device].frame.pack(expand=True, fill='both')
+        self.device_label.config(text=f"Device: {current_device}")
+
+        # Button state
+        self.prev_button.config(state='normal' if index > 0 else 'disabled')
+        self.next_button.config(state='normal' if index < len(self.device_names) - 1 else 'disabled')
+
+    def show_prev_device(self):
+        if self.current_index > 0:
+            self.current_index -= 1
+            self.show_device_by_index(self.current_index)
+
+    def show_next_device(self):
+        if self.current_index < len(self.device_names) - 1:
+            self.current_index += 1
+            self.show_device_by_index(self.current_index)
 
 class EyesMonGUI:
     def __init__(self, root, data_queue):
@@ -86,9 +139,8 @@ class EyesMonGUI:
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(expand=1, fill='both')
 
-        self.rooms = {}  # room_name -> RoomTab
+        self.rooms = {}
 
-        # Start periodic GUI update
         self.root.after(1000, self.process_data_queue)
 
     def process_data_queue(self):
@@ -103,22 +155,19 @@ class EyesMonGUI:
 
             self.rooms[room].update_device(device, metrics)
 
-        self.root.after(1000, self.process_data_queue)  # schedule next check
+        self.root.after(1000, self.process_data_queue)
 
 def start_gui(data_queue):
     root = tk.Tk()
     gui = EyesMonGUI(root, data_queue)
     root.mainloop()
 
-# For testing standalone
 if __name__ == "__main__":
-    import random
-
     q = queue.Queue()
 
     def fake_data_producer():
         rooms = ['Room 1', 'Room 2']
-        devices = ['Infusion Pump A', 'Ventilator B']
+        devices = ['Infusion Pump A', 'Ventilator B', 'ECG Monitor C']
         while True:
             for room in rooms:
                 for device in devices:
@@ -127,8 +176,6 @@ if __name__ == "__main__":
                         "ram": random.randint(10, 90),
                         "disk_usage": random.randint(10, 90),
                         "temperature": random.randint(30, 80),
-                        "uptime": random.randint(100, 5000),
-                        "network_errors": random.randint(0, 5),
                     }
                     q.put({"room": room, "device_name": device, "metrics": metrics})
             time.sleep(5)
