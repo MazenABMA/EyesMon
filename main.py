@@ -1,9 +1,11 @@
 import json
-from monitor.snmp_monitor import monitor_room  # Make sure this path is correct
+from monitor.snmp_monitor import monitor_room  # Using SNMP monitor
+
 
 def load_devices():
     with open("config/hospital_devices.json") as f:
         return json.load(f)
+
 
 def choose_room(devices_data):
     print("🏥 Available Rooms in Hospital:\n")
@@ -16,6 +18,7 @@ def choose_room(devices_data):
     else:
         print("❌ Invalid room number.")
         exit(1)
+
 
 if __name__ == "__main__":
     devices_data = load_devices()
