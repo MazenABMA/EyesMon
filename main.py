@@ -1,8 +1,10 @@
 import json
 import threading
+import queue
 from monitor.snmp_monitor import monitor_room_snmp
 from monitor.cli_monitor import monitor_room_cli
-import time
+
+from gui.eyesmon_gui import start_gui  # Assuming the GUI code is in gui/eyesmon_gui.py
 
 def load_devices():
     with open("config/hospital_devices.json") as f:
@@ -12,6 +14,7 @@ def load_devices():
 def start_monitoring():
     hospital = load_devices()
     rooms = list(hospital.keys())
+    data_queue = queue.Queue()
 
     print("Available rooms:")
     for i, room in enumerate(rooms, 1):
@@ -29,19 +32,19 @@ def start_monitoring():
             print("Invalid input. Monitoring all rooms by default.")
             selected_rooms = rooms
 
+    # Start monitoring threads with data_queue argument
     for room_name in selected_rooms:
         devices = hospital[room_name]
         snmp_devices = [d for d in devices if d["type"] == "snmp"]
         cli_devices = [d for d in devices if d["type"] == "cli"]
 
         if snmp_devices:
-            threading.Thread(target=monitor_room_snmp, args=(room_name, snmp_devices), daemon=True).start()
+            threading.Thread(target=monitor_room_snmp, args=(room_name, snmp_devices, data_queue), daemon=True).start()
         if cli_devices:
-            threading.Thread(target=monitor_room_cli, args=(room_name, cli_devices), daemon=True).start()
+            threading.Thread(target=monitor_room_cli, args=(room_name, cli_devices, data_queue), daemon=True).start()
 
-    # Keep main thread alive so threads keep running
-    while True:
-        time.sleep(1)
+    # Start GUI in main thread (Tkinter needs main thread)
+    start_gui(data_queue)
 
 if __name__ == "__main__":
     start_monitoring()

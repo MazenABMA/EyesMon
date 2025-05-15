@@ -3,6 +3,10 @@ import random
 from alert.alert_manager import log_alert, play_alert_sound
 import paramiko  # for SSH if you want real CLI polling
 from alert.alert_manager import print_device_status
+import time
+import random
+from alert.alert_manager import log_alert, play_alert_sound, print_device_status
+
 def poll_device_cli(device):
     # Simulate or implement SSH command polling here, return metrics dict
     base = random.randint(30, 75)
@@ -24,13 +28,20 @@ def poll_device_cli(device):
         "network_errors": random.randint(0, 5)
     }
 
-def monitor_room_cli(room_name, devices):
+def monitor_room_cli(room_name, devices, data_queue):
     cycle = 1
     while True:
         print(f"\n[CLI] Polling devices... (Cycle {cycle})\n")
         for device in devices:
             metrics = poll_device_cli(device)
             print_device_status(room_name, device, metrics)
+
+            # Push data to GUI queue
+            data_queue.put({
+                "room": room_name,
+                "device_name": device["name"],
+                "metrics": metrics,
+            })
 
             alerts = []
             if metrics["cpu"] > device["thresholds"].get("cpu", 100):

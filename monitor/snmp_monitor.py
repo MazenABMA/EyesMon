@@ -15,13 +15,22 @@ def poll_device_snmp(device):
         "network_errors": 0
     }
 
-def monitor_room_snmp(room_name, devices):
+import time
+
+def monitor_room_snmp(room_name, devices, data_queue):
     cycle = 1
     while True:
         print(f"\n[SNMP] Polling devices... (Cycle {cycle})\n")
         for device in devices:
             metrics = poll_device_snmp(device)
-            print_device_status(room_name, device, metrics)  # You implement this function to print nicely
+            print_device_status(room_name, device, metrics)
+
+            # Push data to GUI queue
+            data_queue.put({
+                "room": room_name,
+                "device_name": device["name"],
+                "metrics": metrics,
+            })
 
             alerts = []
             if metrics["cpu"] > device["thresholds"].get("cpu", 100):
