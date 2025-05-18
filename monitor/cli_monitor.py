@@ -22,7 +22,7 @@ def poll_device_cli(device):
     return {
         "cpu": min(cpu, 100),
         "ram": min(ram, 100),
-        "disk_usage": random.randint(10, 95),
+        "disk_usage": random.randint(10, 30),
         "temperature": random.randint(30, 85),
         "uptime": random.randint(1, 1000),
         "network_errors": random.randint(0, 5)

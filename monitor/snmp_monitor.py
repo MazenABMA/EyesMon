@@ -1,19 +1,35 @@
 import time
 from alert.alert_manager import log_alert, play_alert_sound
-from pysnmp.hlapi import *  # assuming you're using pysnmp
+
 from alert.alert_manager import print_device_status
+import random
+from alert.alert_manager import log_alert
+
 def poll_device_snmp(device):
-    # Your SNMP GET logic here, example placeholder:
-    # Replace with actual pysnmp code to fetch metrics
-    # Return a dict with keys cpu, ram, disk_usage, temperature, uptime, network_errors
-    return {
-        "cpu": 45,
-        "ram": 33,
-        "disk_usage": 20,
-        "temperature": 38,
-        "uptime": 3600,
-        "network_errors": 0
-    }
+    try:
+        # Simulate SNMP failure 1 out of every 5 calls
+        if random.random() < 0.2:
+            raise Exception("Simulated SNMP failure")
+
+        return {
+            "cpu": random.randint(10, 95),
+            "ram": random.randint(10, 95),
+            "disk_usage": random.randint(10, 30),
+            "temperature": random.randint(30, 70),
+            "uptime": 3600,
+            "network_errors": 0
+        }
+
+    except Exception as e:
+        log_alert(device.get("room", "Unknown Room"), device["name"], f"[SNMP ERROR] {str(e)}")
+        return {
+            "cpu": 0,
+            "ram": 0,
+            "disk_usage": 0,
+            "temperature": 0,
+            "uptime": 0,
+            "network_errors": 1
+        }
 
 import time
 
