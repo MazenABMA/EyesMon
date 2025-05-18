@@ -105,15 +105,40 @@
 #         time.sleep(10)  # Polling interval
 import time
 import random
+import threading
+import os
+from queue import Queue
 from alert.alert_manager import log_alert, play_alert_sound, print_device_status
 
-# Global dictionary to track timeout states
+# Global timeout tracking
 device_timeout_states = {}
+command_queue = Queue()
 
 
+def reset_all_timeouts():
+    """Reset all devices in timeout state"""
+    count = sum(1 for state in device_timeout_states.values() if state)
+    device_timeout_states.clear()
+    return f"Reset {count} device(s) in timeout state"
+
+# Update the command_listener function
+def command_listener():
+    """Runs in separate thread to handle commands"""
+    while True:
+        cmd = input("\nMonitorCMD> ").strip()
+        if cmd.lower() == "list":
+            print("Timed-out devices:", [d for d, s in device_timeout_states.items() if s])
+        elif cmd == "reset all":  # New command
+            print(reset_all_timeouts())
+        elif cmd.startswith("reset "):
+            print(reset_device_timeout(cmd[6:].strip()))
+        elif cmd == "help":
+            print("Available commands: reset [DEVICE], reset all, list, help, exit")
+        elif cmd == "exit":
+            os._exit(0)
 def poll_device_snmp(device):
     """
-    Persistent timeout version using global tracking
+    Persistent timeout version
     - Once CPU >80%, device stays in timeout state until manually reset
     """
     device_id = device["name"]
@@ -121,7 +146,7 @@ def poll_device_snmp(device):
     try:
         # Check if device is in forced timeout state
         if device_timeout_states.get(device_id, False):
-            raise Exception("Persistent timeout state (CPU previously <80%)")
+            raise Exception("Persistent timeout state (CPU previously >80%)")
 
         cpu_value = random.randint(10, 100)  # Full range up to 100%
 
@@ -156,48 +181,34 @@ def poll_device_snmp(device):
 
 
 def monitor_room_snmp(room_name, devices, data_queue):
+    # Start command listener thread
+    threading.Thread(target=command_listener, daemon=True).start()
+
     cycle = 1
     while True:
-        print(f"\n[SNMP] Cycle {cycle} - Persistent Timeout Mode\n")
+        # Check for commands
+        if not command_queue.empty():
+            cmd = command_queue.get()
+            if cmd.startswith("reset "):
+                print(reset_device_timeout(cmd[6:].strip()))
 
+        print(f"\n[SNMP] Polling Cycle {cycle}")
         for device in devices:
             metrics = poll_device_snmp(device)
             device_id = device["name"]
 
-            # Display status
             if -1 in metrics.values():
-                print(f"[HARD LOCK] {device_id} in persistent timeout")
-                status = "timeout"
+                print(f"[HARD LOCK] {device_id}")
             else:
                 print_device_status(room_name, device, metrics)
-                status = "normal"
 
             data_queue.put({
                 "room": room_name,
                 "device_name": device_id,
                 "metrics": metrics,
-                "status": status
+                "status": "timeout" if -1 in metrics.values() else "normal"
             })
-
-            # Skip alerts if in timeout
-            if status == "timeout":
-                continue
-
-            # Normal alert processing
-            alerts = []
-            if metrics["cpu"] > device["thresholds"].get("cpu", 80):
-                alerts.append(f"[ALERT] {device_id} CPU at {metrics['cpu']}%")
-
-            for alert in alerts:
-                log_alert(room_name, device_id, alert)
-                play_alert_sound()
 
         print("=" * 50)
         cycle += 1
         time.sleep(10)
-
-
-# To manually reset a device (add this function):
-def reset_device_timeout(device_name):
-    """Clear timeout state for a specific device"""
-    device_timeout_states[device_name] = False
